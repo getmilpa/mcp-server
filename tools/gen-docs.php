@@ -51,6 +51,7 @@ $count = (new Milpa\Docs\SiteGenerator(dirname(__DIR__) . '/src', $out, $cssBase
 // Until core parametrizes those, rewrite the generated HTML for this package.
 // Tracked in the monorepo ROADMAP (gen-docs multi-paquete, mejoras diferidas).
 $rebrand = [
+    'utm_content=core' => 'utm_content=mcp-server',
     'Milpa Core' => 'Milpa McpServer',
     'id="milpa-core"' => 'id="milpa-mcp-server"',
     'composer require milpa/core' => 'composer require milpa/mcp-server',

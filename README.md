@@ -1,8 +1,18 @@
+<p align="center">
+  <a href="https://github.com/getmilpa">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/getmilpa/core/main/art/lockup/milpa-lockup-v-color-dark.svg">
+      <img src="https://raw.githubusercontent.com/getmilpa/core/main/art/lockup/milpa-lockup-v-color-light.svg" alt="Milpa" width="300">
+    </picture>
+  </a>
+</p>
+
 # Milpa McpServer
 
 > The **Model Context Protocol (MCP) transport core** for the Milpa PHP framework, built on **`milpa/core`** and **`milpa/tool-runtime`**. A transport-agnostic JSON-RPC 2.0 dispatcher over the tool-runtime registry (`initialize`, `notifications/initialized`, `tools/list`, `tools/call`), plus the auth seam a host implements to turn a bearer token into an authenticated caller. **No HTTP kernel, no SSE, no concrete token store** — those live in your host application.
 
 [![CI](https://github.com/getmilpa/mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/getmilpa/mcp-server/actions/workflows/ci.yml)
+[![Packagist](https://img.shields.io/packagist/v/milpa/mcp-server.svg)](https://packagist.org/packages/milpa/mcp-server)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A5%208.3-777bb4.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-API%20reference-blue.svg)](https://getmilpa.github.io/mcp-server/)
@@ -144,8 +154,8 @@ issues via [SECURITY.md](SECURITY.md), and note that this project follows a
 
 ## License
 
-[Apache-2.0](LICENSE) © the Milpa authors.
+[Apache-2.0](LICENSE) © TeamX Agency.
 
 ---
 
-Milpa is designed, built, and maintained by **[TeamX Agency](https://teamx.agency)**.
+Milpa is designed, built, and maintained by **[TeamX Agency](https://teamx.agency/?utm_source=github&utm_medium=readme&utm_campaign=milpa&utm_content=mcp-server)**.
