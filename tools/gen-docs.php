@@ -44,39 +44,20 @@ if ($version === null) {
     $version = is_array($data) && is_string($data['.'] ?? null) ? $data['.'] : 'dev';
 }
 
-$count = (new Milpa\Docs\SiteGenerator(dirname(__DIR__) . '/src', $out, $cssBase, $version))->generate();
-
-// INTERIM re-branding: the family generator (milpa/core <= 0.2) hardcodes the
-// "Milpa Core" brand, hero prose and install snippet in Shell/SiteGenerator.
-// Until core parametrizes those, rewrite the generated HTML for this package.
-// Tracked in the monorepo ROADMAP (gen-docs multi-paquete, mejoras diferidas).
-$rebrand = [
-    'utm_content=core' => 'utm_content=mcp-server',
-    'Milpa Core' => 'Milpa McpServer',
-    'id="milpa-core"' => 'id="milpa-mcp-server"',
-    'composer require milpa/core' => 'composer require milpa/mcp-server',
-    'https://github.com/getmilpa/core' => 'https://github.com/getmilpa/mcp-server',
-    'https://getmilpa.github.io/core/' => 'https://getmilpa.github.io/mcp-server/',
-    // Footer credit link: inherit the muted footer color instead of browser-default blue
-    // (fixed at source in core's Shell for >0.2; injected here for the 0.2 vendor).
-    '.docs-footer__credit { margin:0; font-size:var(--text-xs); }'
-    => '.docs-footer__credit { margin:0; font-size:var(--text-xs); }'
-        . '.docs-footer__credit a { color:inherit; text-decoration:underline; text-underline-offset:2px; text-decoration-color:var(--border-strong); }'
-        . '.docs-footer__credit a:hover { color:var(--text); text-decoration-color:currentColor; }',
-
-    'The framework-agnostic <strong>contracts core</strong> of Milpa — a modular PHP runtime for '
-        . 'applications operable by <strong>both humans and agents</strong>. No ORM, no HTTP client, no kernel: '
-        . 'just the primitives every Milpa module builds on.'
-    => 'The <strong>Model Context Protocol (MCP) transport core</strong> of Milpa — a transport-agnostic '
+// Branding for this package's docs site — see Milpa\Docs\SiteConfig (milpa/core).
+$config = new Milpa\Docs\SiteConfig(
+    brand: 'Milpa McpServer',
+    nsPrefix: 'Milpa\\McpServer\\',
+    installCommand: 'composer require milpa/mcp-server',
+    repoUrl: 'https://github.com/getmilpa/mcp-server',
+    pagesUrl: 'https://getmilpa.github.io/mcp-server/',
+    heroParagraph: 'The <strong>Model Context Protocol (MCP) transport core</strong> of Milpa — a transport-agnostic '
         . 'JSON-RPC 2.0 dispatcher over the <code>milpa/tool-runtime</code> registry, plus the auth seam a host '
         . 'implements to turn a bearer token into an authenticated caller.',
-];
-$pages = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($out, FilesystemIterator::SKIP_DOTS));
-foreach ($pages as $file) {
-    if ($file->getExtension() === 'html') {
-        file_put_contents($file->getPathname(), strtr((string) file_get_contents($file->getPathname()), $rebrand));
-    }
-}
+    utmContent: 'mcp-server',
+);
+
+$count = (new Milpa\Docs\SiteGenerator(dirname(__DIR__) . '/src', $out, $cssBase, $version, $config))->generate();
 
 echo "generated {$count} page(s) to {$out} (v{$version}, css-base: {$cssBase})\n";
 exit(0);
