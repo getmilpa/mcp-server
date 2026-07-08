@@ -15,6 +15,10 @@ declare(strict_types=1);
 
 namespace Milpa\McpServer;
 
+use Milpa\Events\InterceptionSlot;
+use Milpa\Interfaces\Event\MilpaEventDispatcherInterface;
+use Milpa\McpServer\Events\McpRequestEvent;
+use Milpa\McpServer\Events\McpRespondedEvent;
 use Milpa\ToolRuntime\Contracts\ToolContext;
 use Milpa\ToolRuntime\ToolRegistry;
 
@@ -31,14 +35,34 @@ use Milpa\ToolRuntime\ToolRegistry;
  * `2025-06-18` (see {@see self::initialize()}), which dropped batching from the spec — this
  * class only ever spoke single-request JSON-RPC, so that revision is now spec-exact instead of
  * an approximation.
+ *
+ * **Events (0.3, additive, ADDITIVE around the 0.2 semantics above — never changes them).** An
+ * optional {@see MilpaEventDispatcherInterface} — nullable, HumanVerifier pattern, a service
+ * with no dispatcher wired keeps working byte-for-byte as before — brackets every resolved
+ * method dispatch (batch rejection / bad `jsonrpc` / missing `method` never reach this: those
+ * are protocol-level failures, not a "method" a plugin could reasonably want to observe or
+ * veto):
+ * - `mcp.request` (PRE, stoppable) fires with `['event' => McpRequestEvent, 'slot' =>
+ *   InterceptionSlot]` right before the method would run. A listener may call `$slot->stop()`
+ *   to veto the method outright (the method never runs; the caller gets a `-32001` JSON-RPC
+ *   error) or `$slot->shortCircuit($response)` to serve a canned/cached response in its place
+ *   (the method never runs; `$response` becomes the JSON-RPC `result` as-is).
+ * - `mcp.responded` (POST, readonly) fires with `['event' => McpRespondedEvent]` once a
+ *   response envelope exists — whether the method actually ran, a listener short-circuited it,
+ *   or a listener vetoed it. Fires even for notifications (no `id` member), where `handle()`'s
+ *   own return value is `null` on the wire per the 0.2 contract — the event still carries the
+ *   response that *would* have been sent, for observability.
  */
 class JsonRpcService
 {
     private ToolRegistry $toolRegistry;
 
-    public function __construct(ToolRegistry $toolRegistry)
+    private ?MilpaEventDispatcherInterface $dispatcher;
+
+    public function __construct(ToolRegistry $toolRegistry, ?MilpaEventDispatcherInterface $dispatcher = null)
     {
         $this->toolRegistry = $toolRegistry;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -71,6 +95,15 @@ class JsonRpcService
      * single-request only; there is no batching fallback, and batching itself was removed from
      * the protocol as of the `2025-06-18` revision this server declares (see the class
      * docblock).
+     *
+     * **Events (0.3).** Once `$method` is resolved to a non-empty string — i.e. past the
+     * batch/`jsonrpc`/missing-`method` guards above, which are protocol-level failures no
+     * plugin gets a say in — this method brackets the dispatch with `mcp.request` (PRE,
+     * stoppable) and `mcp.responded` (POST, readonly). See the class docblock for the full
+     * contract; in short, a listener may veto or short-circuit the method via the
+     * {@see \Milpa\Events\InterceptionSlot} handed to `mcp.request`, and `mcp.responded` always
+     * fires afterward with whatever response resulted — including for notifications, where the
+     * *return value* of this method is still `null` per the paragraph above.
      *
      * @param array<int|string, mixed> $request Decoded JSON-RPC request. May also be a plain
      *                                          list (int-indexed) when the caller sent a
@@ -129,28 +162,64 @@ class JsonRpcService
             ];
         }
 
-        try {
-            $result = $this->dispatch($method, is_array($params) ? $params : [], $ctx);
-        } catch (\Exception $e) {
-            return $isNotification ? null : [
+        $normalizedParams = is_array($params) ? $params : [];
+
+        // --- mcp.request (PRE, stoppable) ---------------------------------------------------
+        // See class docblock. A listener reading $slot back after dispatch() returns may have
+        // vetoed the method (isStopped(), no result) or short-circuited it (hasResult()) — both
+        // mean the method below never runs. No dispatcher wired -> $slot stays fresh/unstopped
+        // and this is a no-op, byte-identical to pre-0.3 behavior.
+        $slot = new InterceptionSlot();
+        $this->dispatcher?->dispatch(
+            'mcp.request',
+            ['event' => new McpRequestEvent($method, $normalizedParams, $ctx), 'slot' => $slot]
+        );
+
+        if ($slot->hasResult()) {
+            $response = [
+                'jsonrpc' => '2.0',
+                'result' => $slot->getResult(),
+                'id' => $id,
+            ];
+        } elseif ($slot->isStopped()) {
+            $response = [
                 'jsonrpc' => '2.0',
                 'error' => [
-                    'code' => $e->getCode() ?: -32603,
-                    'message' => $e->getMessage(),
+                    'code' => -32001,
+                    'message' => "Method vetoed by an mcp.request listener: {$method}",
                 ],
                 'id' => $id,
             ];
+        } else {
+            try {
+                $result = $this->dispatch($method, $normalizedParams, $ctx);
+                $response = [
+                    'jsonrpc' => '2.0',
+                    'result' => $result,
+                    'id' => $id,
+                ];
+            } catch (\Exception $e) {
+                $response = [
+                    'jsonrpc' => '2.0',
+                    'error' => [
+                        'code' => $e->getCode() ?: -32603,
+                        'message' => $e->getMessage(),
+                    ],
+                    'id' => $id,
+                ];
+            }
         }
+
+        // --- mcp.responded (POST, readonly) -------------------------------------------------
+        // Fires unconditionally, even for notifications (see below) — observability must see
+        // the response that was computed, independent of whether it ever reaches the wire.
+        $this->dispatcher?->dispatch('mcp.responded', ['event' => new McpRespondedEvent($method, $response)]);
 
         if ($isNotification) {
             return null;
         }
 
-        return [
-            'jsonrpc' => '2.0',
-            'result' => $result,
-            'id' => $id,
-        ];
+        return $response;
     }
 
     /**

@@ -79,6 +79,65 @@ $response = $rpc->handle([
 // — see "Recipes" below.
 ```
 
+## Events (0.3)
+
+`JsonRpcService` takes an optional second constructor argument: an
+`?MilpaEventDispatcherInterface` (from `milpa/core`), nullable and defaulting to `null` (the
+same pattern `milpa/tool-runtime`'s `HumanVerifier` uses). Leave it unset and `handle()` behaves
+exactly as it did in 0.2 — nothing below is a breaking change for existing callers.
+
+Wired up, `handle()` brackets every *resolved* method dispatch — i.e. once `$method` has passed
+the batch/`jsonrpc`/missing-`method` guards, which are protocol-level failures no plugin gets a
+say in — with two events:
+
+- **`mcp.request`** (PRE, stoppable) fires right before the method would run, with a payload
+  shaped `['event' => McpRequestEvent, 'slot' => InterceptionSlot]`. A listener reads the
+  method/params/caller context off the event, and can act on the slot:
+  - `$slot->stop()` — pure veto. The method never runs; the caller gets a well-formed
+    `-32001 Method vetoed by an mcp.request listener: <method>` JSON-RPC error.
+  - `$slot->shortCircuit($response)` — serve a canned or cached response in the method's place.
+    The method never runs; `$response` becomes the JSON-RPC `result` as-is.
+  - Neither call — the method runs normally, exactly as in 0.2.
+- **`mcp.responded`** (POST, readonly) fires afterward with `['event' => McpRespondedEvent]`
+  once a response envelope exists, no matter how it was produced (the method ran, a listener
+  short-circuited it, or a listener vetoed it). It fires even for notifications (a request with
+  no `id` member) — `handle()`'s own return value is still `null` on the wire per the 0.2
+  contract, but the event carries the response that *would* have been sent, so observability
+  never goes blind just because the wire response was suppressed.
+
+```php
+use Milpa\Events\InterceptionSlot;
+use Milpa\McpServer\Events\McpRequestEvent;
+use Milpa\McpServer\Events\McpRespondedEvent;
+use Milpa\McpServer\JsonRpcService;
+
+// A cache plugin: short-circuit tools/call for a known-idempotent tool + args pair.
+$dispatcher->subscribe('mcp.request', function (string $eventName, array $payload): void {
+    $event = $payload['event']; // McpRequestEvent
+    /** @var InterceptionSlot $slot */
+    $slot = $payload['slot'];
+
+    if ($event->getMethod() === 'tools/call') {
+        $cached = $cache->get($event->getParams());
+        if ($cached !== null) {
+            $slot->shortCircuit($cached); // the tool never actually runs
+        }
+    }
+});
+
+// An audit plugin: log the outcome of every dispatched method, cache hit or not.
+$dispatcher->subscribe('mcp.responded', function (string $eventName, array $payload): void {
+    /** @var McpRespondedEvent $event */
+    $event = $payload['event'];
+    $logger->info('mcp method responded', [
+        'method' => $event->getMethod(),
+        'ok' => !isset($event->getResponse()['error']),
+    ]);
+});
+
+$rpc = new JsonRpcService($registry, $dispatcher);
+```
+
 ## The auth seam
 
 `JsonRpcService` itself takes an already-resolved `?ToolContext` — it has no opinion on how you
@@ -229,7 +288,8 @@ that decision.
 ## Requirements
 
 - PHP **≥ 8.3**
-- [`milpa/core`](https://packagist.org/packages/milpa/core) **^0.3**
+- [`milpa/core`](https://packagist.org/packages/milpa/core) **^0.5** (0.3's events + 0.5's
+  `InterceptionSlot` — see "Events (0.3)" above)
 - [`milpa/tool-runtime`](https://packagist.org/packages/milpa/tool-runtime) **^0.2**
 - [`psr/log`](https://packagist.org/packages/psr/log) **^3**
 
