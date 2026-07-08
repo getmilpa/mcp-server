@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/getmilpa/mcp-server/compare/v0.1.0...v0.2.0) (2026-07-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* notification null-signal, never-throw envelopes, protocol 2025-06-18
+
+### Features
+
+* notification null-signal, never-throw envelopes, protocol 2025-06-18 ([15b2198](https://github.com/getmilpa/mcp-server/commit/15b2198349157925d3f36515107cc6d747cd8277))
+
 ## 0.1.0 (2026-07-07)
 
 
