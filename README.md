@@ -73,8 +73,10 @@ $response = $rpc->handle([
     'id' => 1,
 ], $ctx);
 
-// $response is a plain JSON-RPC 2.0 response array — json_encode() it onto whatever
-// transport your host terminates (an HTTP POST body, a stdio pipe, ...).
+// $response is a JSON-RPC 2.0 response array, or null. json_encode() an array response onto
+// whatever transport your host terminates (an HTTP POST body, a stdio pipe, ...); a null
+// response means the request was a notification and your transport MUST write nothing at all
+// — see "Recipes" below.
 ```
 
 ## The auth seam
@@ -124,6 +126,96 @@ two seams (a validator and a separate principal resolver). This package does not
 nothing in its own reference host ever calls them independently — every real call site
 authenticates a request by immediately needing both the yes/no *and* the principal in the same
 breath. A second seam here would be indirection with no consumer, not abstraction.
+
+## Recipes
+
+Three things the first real consumer of this package's stdio transport had to work out by
+reading source instead of a doc. Fixed here for the next one.
+
+### Running without auth (a trusted local process)
+
+`JsonRpcService` itself is auth-agnostic — it just takes whatever `?ToolContext` you hand it.
+But `milpa/tool-runtime`'s `PolicyGate` ships a built-in `mcp` channel policy that is *not*
+agnostic: `channelPolicies['mcp']` is `['allow_all' => false, 'require_auth' => true]`, so **any
+`ToolContext` with an empty `principal` gets every `tools/call` silently `FORBIDDEN`** —
+including non-mutating reads. Nothing about this surfaces from `JsonRpcService`'s side; the only
+way to find it is to read `PolicyGate`'s source or puzzle over a confusing `success: false` on
+every single tool call.
+
+If your transport genuinely has no per-request auth — a local stdio server spawned by an agent
+you already trust to run the whole process — the fix is a fixed principal and wildcard scopes,
+the same "no real auth, but the channel police accepts a hard-coded identity" pattern
+`ToolContext::cli()` already uses for the CLI channel:
+
+```php
+use Milpa\ToolRuntime\Contracts\ToolContext;
+
+$ctx = ToolContext::mcp(
+    requestId: (string) ($request['id'] ?? uniqid('mcp-', true)),
+    principal: 'stdio',   // any non-empty string satisfies require_auth
+    scopes: ['*'],
+);
+```
+
+**Security caveat:** this is process-level trust, not per-caller authentication — every request
+through this process runs as `stdio` with every scope. It is only appropriate when you already
+trust whoever can talk to the process (e.g. an agent you spawned yourself over a private pipe),
+never when the transport is reachable by anyone else (HTTP, a shared socket, a multi-tenant
+host, ...). For real per-caller auth, implement `Auth\TokenValidatorInterface` and resolve a
+distinct `Principal` per request instead — see "The auth seam" above.
+
+### Notifications: branch on `null`, not on your own `id` check
+
+A JSON-RPC notification is a request with no `id` member at all (§4.1) — the server MUST NOT
+reply, not even with an empty body. As of 0.2, `handle()` knows this itself: it still dispatches
+the method (so any side effects happen), but returns `null` instead of a response array whenever
+the original request had no `id` key. **Your transport's whole job is "if `handle()` returned
+null, write nothing"** — there is no need to re-derive notification-ness from the raw request
+yourself anymore.
+
+```php
+while (($line = fgets(STDIN)) !== false) {
+    $request = json_decode(trim($line), true);
+    // ... decode/validate $request as JSON, handle parse errors, etc ...
+
+    $response = $rpc->handle($request, $ctx);
+
+    if ($response === null) {
+        continue; // notification (or a batch/notification hybrid edge case) — write nothing
+    }
+
+    fwrite(STDOUT, json_encode($response) . "\n");
+    fflush(STDOUT);
+}
+```
+
+One wrinkle worth knowing about, not one you need to handle yourself: an explicit
+`{"id": null, ...}` member IS a request, not a notification — `handle()` tells the two apart
+internally with `array_key_exists('id', $request)`, deliberately never `isset()` (which would
+treat a present-but-null `id` the same as a missing one and wrongly suppress a reply the caller
+expected). You don't need to replicate that distinction; just branch on `handle()`'s return
+value.
+
+### Batches: rejected, on purpose
+
+`handle()` is single-request only and always has been — one decoded request array in, one
+response array (or `null`) out. As of 0.2 it also says so on the wire: if the decoded request is
+itself a list (a JSON-RPC batch — `[{...}, {...}]`, or even the empty `[]`) it returns a
+`-32600 Batch requests are not supported` error with `id: null`, instead of silently misreading
+the list as one malformed request and leaving a batching-capable client hanging for responses
+that will never arrive.
+
+This is also why `initialize()` now declares protocol revision **`2025-06-18`** rather than the
+earlier `2025-03-26`: that revision dropped batching from MCP's JSON-RPC transport entirely, so
+a server that only ever spoke single-request JSON-RPC is now spec-exact instead of an
+approximation with an undocumented gap. (The `2025-06-18` revision's other, capability-gated
+optional features — `structuredContent`, elicitation — are out of scope for this package; it
+declares the revision, not every feature introduced in it.)
+
+If your host still wants its own batch guard ahead of `handle()` — e.g. to short-circuit before
+touching your own auth or logging — that's harmless. `handle()`'s guard makes it redundant, not
+wrong; keep it as defense-in-depth if you'd rather not depend on this package's internals for
+that decision.
 
 ## What lives where
 
