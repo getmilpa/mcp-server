@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/getmilpa/mcp-server/compare/v0.3.0...v0.3.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* receive milpa/core 0.6 — pin bump ([bb0add2](https://github.com/getmilpa/mcp-server/commit/bb0add205df1233df5117cdc26382100ee9db307))
+
 ## [0.3.0](https://github.com/getmilpa/mcp-server/compare/v0.2.2...v0.3.0) (2026-07-08)
 
 
