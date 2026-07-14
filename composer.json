@@ -3,6 +3,12 @@
   "description": "Model Context Protocol (MCP) transport core for the Milpa PHP framework: a transport-agnostic JSON-RPC 2.0 dispatcher over the tool-runtime registry, plus the auth seam a host implements to turn a bearer token into an authenticated caller.",
   "type": "library",
   "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Rodrigo Vicente - TeamX Agency",
+      "homepage": "https://teamx.agency"
+    }
+  ],
   "require": {
     "php": ">=8.3",
     "milpa/core": "^0.6",

@@ -288,9 +288,9 @@ that decision.
 ## Requirements
 
 - PHP **≥ 8.3**
-- [`milpa/core`](https://packagist.org/packages/milpa/core) **^0.5** (0.3's events + 0.5's
+- [`milpa/core`](https://packagist.org/packages/milpa/core) **^0.6** (0.3's events + 0.5's
   `InterceptionSlot` — see "Events (0.3)" above)
-- [`milpa/tool-runtime`](https://packagist.org/packages/milpa/tool-runtime) **^0.2**
+- [`milpa/tool-runtime`](https://packagist.org/packages/milpa/tool-runtime) **^0.5**
 - [`psr/log`](https://packagist.org/packages/psr/log) **^3**
 
 ## Documentation
