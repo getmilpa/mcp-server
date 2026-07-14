@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/getmilpa/mcp-server/compare/v0.3.1...v0.3.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* accept milpa/tool-runtime ^0.5 || ^0.6 ([131eefb](https://github.com/getmilpa/mcp-server/commit/131eefb512d7aa6c3d5cfbccfc1f44aee567c223))
+
 ## [0.3.1](https://github.com/getmilpa/mcp-server/compare/v0.3.0...v0.3.1) (2026-07-12)
 
 
