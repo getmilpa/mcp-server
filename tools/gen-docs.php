@@ -4,7 +4,7 @@
  * This file is part of milpa/mcp-server — the Model Context Protocol (MCP) transport core
  * for the Milpa PHP framework.
  *
- * (c) TeamX Agency — https://teamx.agency <hola@teamx.agency>
+ * (c) Rodrigo Vicente - TeamX Agency — https://teamx.agency <hola@teamx.agency>
  *
  * @license Apache-2.0
  *
