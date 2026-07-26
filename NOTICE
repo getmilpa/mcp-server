@@ -1,0 +1,7 @@
+milpa/mcp-server — Model Context Protocol (MCP) transport core for the Milpa PHP framework: a transport-agnostic JSON-RPC 2.0 dispatcher over the tool-runtime registry, plus the auth seam a host implements to turn a bearer token into an authenticated caller.
+Copyright 2026 Rodrigo Vicente Gómez / TeamX Agency
+
+This product includes software developed by
+Rodrigo Vicente - TeamX Agency — https://x.com/rodrigoteamx
+
+https://teamx.agency · https://github.com/getmilpa/mcp-server
