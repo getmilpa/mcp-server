@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/getmilpa/mcp-server/compare/v0.3.2...v0.3.3) (2026-07-30)
+
+
+### Bug Fixes
+
+* catch up with the family's published versions ([42f5f95](https://github.com/getmilpa/mcp-server/commit/42f5f95149fb9f1983a3de38f57b1ee9f3d835c5))
+
 ## [0.3.2](https://github.com/getmilpa/mcp-server/compare/v0.3.1...v0.3.2) (2026-07-14)
 
 
