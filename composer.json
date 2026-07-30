@@ -22,7 +22,7 @@
   "require": {
     "php": ">=8.3",
     "milpa/core": "^0.6",
-    "milpa/tool-runtime": "^0.8",
+    "milpa/tool-runtime": "^0.9",
     "psr/log": "^3"
   },
   "require-dev": {
