@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/getmilpa/mcp-server/compare/v0.3.3...v0.4.0) (2026-07-30)
+
+
+### Features
+
+* require milpa/tool-runtime ^0.9 ([f35908e](https://github.com/getmilpa/mcp-server/commit/f35908e73fe9e3043916aaf5f8fe003bf0383984))
+
 ## [0.3.3](https://github.com/getmilpa/mcp-server/compare/v0.3.2...v0.3.3) (2026-07-30)
 
 
