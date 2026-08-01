@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/getmilpa/mcp-server/compare/v0.4.1...v0.4.2) (2026-08-01)
+
+
+### Bug Fixes
+
+* este paquete declara que aporta ([9367c44](https://github.com/getmilpa/mcp-server/commit/9367c44c8b77ed96c448abb741888e19c9d465f2))
+
 ## [0.4.1](https://github.com/getmilpa/mcp-server/compare/v0.4.0...v0.4.1) (2026-08-01)
 
 
