@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/getmilpa/mcp-server/compare/v0.4.0...v0.4.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* **deps:** el pin de milpa/core acepta la linea 0.7 ([5cd325d](https://github.com/getmilpa/mcp-server/commit/5cd325d126f03473d89a63d6225c073c014e3c55))
+
 ## [0.4.0](https://github.com/getmilpa/mcp-server/compare/v0.3.3...v0.4.0) (2026-07-30)
 
 
