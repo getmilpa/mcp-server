@@ -21,7 +21,7 @@
   ],
   "require": {
     "php": ">=8.3",
-    "milpa/core": "^0.6",
+    "milpa/core": "^0.6.2 || ^0.7",
     "milpa/tool-runtime": "^0.9",
     "psr/log": "^3"
   },
