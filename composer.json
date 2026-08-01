@@ -41,5 +41,20 @@
       "Milpa\\McpServer\\Tests\\": "tests/",
       "Milpa\\Docs\\": "vendor/milpa/core/tools/gen-docs/"
     }
+  },
+  "extra": {
+    "milpa": {
+      "capability": {
+        "id": "mcp",
+        "title": "Las mismas operaciones, expuestas a un cliente MCP externo",
+        "unlocks": [
+          "bin/mcp-server.php"
+        ],
+        "provides": [
+          "surface.mcp"
+        ],
+        "briefing": "Las operaciones de esta app tambi\u00e9n se sirven por MCP."
+      }
+    }
   }
 }
