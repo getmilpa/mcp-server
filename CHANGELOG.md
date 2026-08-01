@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/getmilpa/mcp-server/compare/v0.4.2...v0.4.3) (2026-08-01)
+
+
+### Bug Fixes
+
+* the capability contract speaks English ([49f28f5](https://github.com/getmilpa/mcp-server/commit/49f28f5f111cd76847153f52bab7edd7ec9b3e01))
+
 ## [0.4.2](https://github.com/getmilpa/mcp-server/compare/v0.4.1...v0.4.2) (2026-08-01)
 
 
