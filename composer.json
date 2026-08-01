@@ -46,14 +46,14 @@
     "milpa": {
       "capability": {
         "id": "mcp",
-        "title": "Las mismas operaciones, expuestas a un cliente MCP externo",
+        "title": "The same operations, exposed to an external MCP client",
         "unlocks": [
           "bin/mcp-server.php"
         ],
         "provides": [
           "surface.mcp"
         ],
-        "briefing": "Las operaciones de esta app tambi\u00e9n se sirven por MCP."
+        "briefing": "The operations of this app are also served over MCP."
       }
     }
   }
