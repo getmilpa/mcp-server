@@ -53,7 +53,10 @@
         "provides": [
           "surface.mcp"
         ],
-        "briefing": "The operations of this app are also served over MCP."
+        "briefing": "The operations of this app are also served over MCP.",
+        "contracts": {
+          "surface.mcp": "Milpa\\McpServer\\JsonRpcService"
+        }
       }
     }
   }
