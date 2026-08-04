@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/getmilpa/mcp-server/compare/v0.4.3...v0.4.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **composer:** declarar type milpa-capability para que el paquete sea descubrible por lo que es ([fd53740](https://github.com/getmilpa/mcp-server/commit/fd537403c59e821d75bc10be86559fb333402287))
+
 ## [0.4.3](https://github.com/getmilpa/mcp-server/compare/v0.4.2...v0.4.3) (2026-08-01)
 
 
