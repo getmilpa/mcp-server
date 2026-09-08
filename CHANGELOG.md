@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/getmilpa/mcp-server/compare/v0.5.1...v0.6.0) (2026-09-08)
+
+
+### Features
+
+* declare every event this package dispatches to the dispatcher ([#21](https://github.com/getmilpa/mcp-server/issues/21)) ([8714c1d](https://github.com/getmilpa/mcp-server/commit/8714c1db3f4f7d116ea6c164da41d4b78816137c))
+
 ## [0.4.5](https://github.com/getmilpa/mcp-server/compare/v0.4.4...v0.4.5) (2026-08-04)
 
 
