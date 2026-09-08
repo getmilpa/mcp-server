@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Milpa\McpServer\Events;
 
+use Milpa\Interfaces\Event\DeclaresEvents;
 use Milpa\Interfaces\Event\EventDeclaration;
 use Milpa\McpServer\JsonRpcService;
 
@@ -27,8 +28,13 @@ use Milpa\McpServer\JsonRpcService;
  * dispatcher implementing {@see \Milpa\Interfaces\Event\DeclaredEvents} the moment it receives
  * one; a dispatcher that does not implement it is asked nothing, and dispatching keeps working
  * whether or not anything was declared.
+ *
+ * A CLI process never builds a {@see JsonRpcService}, so nothing would ever be declared from it
+ * there. This class is therefore ALSO named in the package manifest under `extra.milpa.events`,
+ * and implements {@see DeclaresEvents}: a host reads the class name from the manifest Composer
+ * resolved and declares these events on behalf of an emitter this process will never construct.
  */
-final class McpServerEvents
+final class McpServerEvents implements DeclaresEvents
 {
     /**
      * PRE, interceptable: fires right before a resolved JSON-RPC method runs, with an
