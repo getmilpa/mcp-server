@@ -16,9 +16,11 @@ declare(strict_types=1);
 namespace Milpa\McpServer;
 
 use Milpa\Events\InterceptionSlot;
+use Milpa\Interfaces\Event\DeclaredEvents;
 use Milpa\Interfaces\Event\MilpaEventDispatcherInterface;
 use Milpa\McpServer\Events\McpRequestEvent;
 use Milpa\McpServer\Events\McpRespondedEvent;
+use Milpa\McpServer\Events\McpServerEvents;
 use Milpa\ToolRuntime\Contracts\ToolContext;
 use Milpa\ToolRuntime\ToolRegistry;
 
@@ -52,6 +54,11 @@ use Milpa\ToolRuntime\ToolRegistry;
  *   or a listener vetoed it. Fires even for notifications (no `id` member), where `handle()`'s
  *   own return value is `null` on the wire per the 0.2 contract — the event still carries the
  *   response that *would* have been sent, for observability.
+ *
+ * Both names live as constants on {@see McpServerEvents}, which also DECLARES them: when the
+ * dispatcher handed to the constructor implements {@see DeclaredEvents}, the service declares
+ * every event it dispatches to it right there (greenhouse decisions/0228). A dispatcher that
+ * does not implement it is asked nothing; dispatching never depends on the declaration.
  */
 class JsonRpcService
 {
@@ -59,10 +66,18 @@ class JsonRpcService
 
     private ?MilpaEventDispatcherInterface $dispatcher;
 
+    /**
+     * Wires the registry and, optionally, the dispatcher — declaring this package's events to it
+     * when it can hold declarations ({@see DeclaredEvents}); otherwise a silent no-op.
+     */
     public function __construct(ToolRegistry $toolRegistry, ?MilpaEventDispatcherInterface $dispatcher = null)
     {
         $this->toolRegistry = $toolRegistry;
         $this->dispatcher = $dispatcher;
+
+        if ($dispatcher instanceof DeclaredEvents) {
+            $dispatcher->declare(...McpServerEvents::declarations());
+        }
     }
 
     /**
@@ -171,7 +186,7 @@ class JsonRpcService
         // and this is a no-op, byte-identical to pre-0.3 behavior.
         $slot = new InterceptionSlot();
         $this->dispatcher?->dispatch(
-            'mcp.request',
+            McpServerEvents::REQUEST,
             ['event' => new McpRequestEvent($method, $normalizedParams, $ctx), 'slot' => $slot]
         );
 
@@ -213,7 +228,7 @@ class JsonRpcService
         // --- mcp.responded (POST, readonly) -------------------------------------------------
         // Fires unconditionally, even for notifications (see below) — observability must see
         // the response that was computed, independent of whether it ever reaches the wire.
-        $this->dispatcher?->dispatch('mcp.responded', ['event' => new McpRespondedEvent($method, $response)]);
+        $this->dispatcher?->dispatch(McpServerEvents::RESPONDED, ['event' => new McpRespondedEvent($method, $response)]);
 
         if ($isNotification) {
             return null;
