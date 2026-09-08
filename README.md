@@ -138,6 +138,15 @@ $dispatcher->subscribe('mcp.responded', function (string $eventName, array $payl
 $rpc = new JsonRpcService($registry, $dispatcher);
 ```
 
+### The emitter declares its events
+
+Both names are constants on `Milpa\McpServer\Events\McpServerEvents` (`REQUEST`, `RESPONDED`)
+— the dispatch sites and the declarations read the same constant. When the dispatcher handed to
+`JsonRpcService` implements `Milpa\Interfaces\Event\DeclaredEvents` (milpa/core ≥ 0.11), the
+service declares every event it dispatches to it in the constructor, so the house can answer
+«what events exist?» from the emitters themselves (greenhouse decisions/0228). A dispatcher that
+does not implement it is asked nothing; dispatching never depends on the declaration.
+
 ## The auth seam
 
 `JsonRpcService` itself takes an already-resolved `?ToolContext` — it has no opinion on how you
@@ -288,8 +297,8 @@ that decision.
 ## Requirements
 
 - PHP **≥ 8.3**
-- [`milpa/core`](https://packagist.org/packages/milpa/core) **^0.6** (0.3's events + 0.5's
-  `InterceptionSlot` — see "Events (0.3)" above)
+- [`milpa/core`](https://packagist.org/packages/milpa/core) **≥ 0.11 < 1.0** (0.3's events, 0.5's
+  `InterceptionSlot`, 0.11's `DeclaredEvents` — see "Events (0.3)" above)
 - [`milpa/tool-runtime`](https://packagist.org/packages/milpa/tool-runtime) **^0.5**
 - [`psr/log`](https://packagist.org/packages/psr/log) **^3**
 
