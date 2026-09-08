@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/getmilpa/mcp-server/compare/v0.6.0...v0.7.0) (2026-09-08)
+
+
+### Features
+
+* name the events holder in the manifest so a host reads them without constructing anything ([#23](https://github.com/getmilpa/mcp-server/issues/23)) ([9d5d963](https://github.com/getmilpa/mcp-server/commit/9d5d963c3d37ff93f96f61eb6dbd93a602f1fff0))
+
 ## [0.6.0](https://github.com/getmilpa/mcp-server/compare/v0.5.1...v0.6.0) (2026-09-08)
 
 
